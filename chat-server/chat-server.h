@@ -17,7 +17,7 @@
 #define kMaxClients 10
 #define kBufferSize 1024
 #define kMaxMsgLength 80
-#define kChunchSize 40
+#define kChunkSize 41
 #define kUserNameLength 6
 
 typedef struct {
