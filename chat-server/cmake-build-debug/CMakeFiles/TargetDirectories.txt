@@ -1,0 +1,3 @@
+/home/aalmoune1948/Desktop/A4/chat-system/chat-server/cmake-build-debug/CMakeFiles/chat_server.dir
+/home/aalmoune1948/Desktop/A4/chat-system/chat-server/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/aalmoune1948/Desktop/A4/chat-system/chat-server/cmake-build-debug/CMakeFiles/rebuild_cache.dir

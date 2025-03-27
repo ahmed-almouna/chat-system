@@ -1,6 +1,11 @@
 //
 // Created on 27/03/25.
 //
+
+#ifndef CHAT_SERVER_H
+#define CHAT_SERVER_H
+
+// Include statments
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,9 +15,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <time.h>
-
-#ifndef CHAT_SERVER_H
-#define CHAT_SERVER_H
 
 #define kMaxClients 10
 #define kBufferSize 1024
@@ -33,6 +35,7 @@ pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int userId = 0;
 
 //Function prototypes
+void displayFatalError(char* errorMessage);
 void addClient(clientT *client);
 void removeClient(int userId);
 void sendMessage(char *message, int senderUserId);

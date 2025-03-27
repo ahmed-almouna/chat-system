@@ -1,8 +1,25 @@
-#include "chat-server.h"
+#include "../inc/chat-server.h"
 
-int main(int argc, char *argv[]) {
+int main(void)
+{
+  int serverSocket;
+
+  /* Create socket */
+  if ((serverSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+  {
+    displayFatalError("socket() FAILED");
+  }
+
 
   return 0;
+}
+
+
+// This function displays the error message specified and terminates the program.
+void displayFatalError(char* errorMessage) //might need to go in common
+{
+  printf("Error: %s\n", errorMessage);
+  exit(1);
 }
 
 void addClient(clientT *client) {
