@@ -12,10 +12,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <threads.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <time.h>
 #include <fcntl.h>
 #include <errno.h>
 
@@ -34,6 +31,12 @@ typedef struct {
   char userName[kUserNameLength];
   char ip[INET_ADDRSTRLEN];
 } clientT;
+
+typedef struct ClientList
+{
+   int numberOfClients;
+   clientT clients[kMaxClients];
+} ClientList;
 
 clientT *clients[kMaxClients];
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;

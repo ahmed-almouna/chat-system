@@ -18,7 +18,7 @@ int main(void)
   serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
   serverAddress.sin_port = htons(kServerPort);
 
-  /* Bind socket */
+  /* Bind to the socket */
   if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
   {
     close(serverSocket);
@@ -32,7 +32,7 @@ int main(void)
     displayFatalError("fcntl() FAILED");
   }
 
-  /* Start listening for connections */
+  /* Start listening to the socket */
   if (listen (serverSocket, 5) < 0) // 5 is the max number of pending connections (UNIX uses 5 by default)
   {
     close(serverSocket);
@@ -42,7 +42,11 @@ int main(void)
   int clientSocket;
   struct sockaddr_in clientAddress; // Holds client's details
   socklen_t clientAddressLength = sizeof(clientAddress);
-  sleep(1);
+
+  sleep(1); //Change to 10
+  ClientList chatClients;
+  chatClients.numberOfClients = 0;
+  chatClients.clients = {};
 
   /* Enter listening loop; accept users' messages */ //NOTE try killing a client while running
   while (true)
@@ -50,32 +54,62 @@ int main(void)
     /* Accept a connection */
     if ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &clientAddressLength)) >= 0)
     {
-      //Fire thread to handle
-      // thrd_t clientThread;
-      // thrd_create(clientThread, )
+      /* Fire a thread to handle it */
+      thrd_t clientThread;
+      if (thrd_create(clientThread, handleClient, (void*)clientSocket) != thrd_success)
+      {
+        displayFatalError("thrd_create() FAILED");
+      }
 
+      thrd_detach(clientThread);
 
-
-    } /* Handle fatal accept errors */
+    } /* Handle fatal errors */
     else if (clientSocket < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
     {
       // might need to clean up
       displayFatalError("accept() FAILED");
     }
 
+    if (chatClients.numberOfClients == 0)
+    {
+      break;
+    }
     // Simulate some non-blocking work (e.g., checking timers, other tasks)
     sleep(1); // Sleep briefly to avoid busy-waiting
   }
 
-
+  //todo: Clean up
 
   return 0;
 }
 
-void handleRequest(void)
+// This functions handles a request being receieved
+void handleRequest(void* clientSocket)
 {
+  char buffer[kBufferSize] = {};
 
+  read((int)clientSocket, buffer, sizeof(buffer));
+
+  strcmp(buffer, "");
+
+  if (strncmp(buffer, "Hello|", 6) == 0)
+  {
+    //add client
+  }
+  else if (strcmp(buffer, ">>bye<<") == 0)
+  {
+    //remove client
+  }
+  else if (strncmp(buffer, "Message|", 6) == 0)
+  {
+    //parcel, format, and broadcast message
+  }
+  else
+  {
+    //message is invalid
+  }
 }
+
 // This function displays the error message specified and terminates the program.
 void displayFatalError(char* errorMessage) //might need to go in common
 {
