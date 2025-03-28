@@ -1,0 +1,6 @@
+# ninja log v6
+9	94	1743113259482450874	build.ninja	d8f0d47249e489ae
+0	576	1743113259498448542	CMakeFiles/chat_server.dir/src/chat-server.c.o	3f9bddf81dacba68
+577	661	1743113260076364304	chat_server	2702e3f96b0e3201
+14	756	1743121256972304471	CMakeFiles/chat_server.dir/src/chat-server.c.o	3f9bddf81dacba68
+756	895	1743121257713199957	chat_server	2702e3f96b0e3201

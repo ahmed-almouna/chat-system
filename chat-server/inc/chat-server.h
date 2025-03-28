@@ -5,17 +5,22 @@
 #ifndef CHAT_SERVER_H
 #define CHAT_SERVER_H
 
-// Include statments
+// Include statements
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <threads.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <time.h>
+#include <fcntl.h>
+#include <errno.h>
 
+// Constants
+#define kServerPort 13000
 #define kMaxClients 10
 #define kBufferSize 1024
 #define kMaxMsgLength 80
@@ -41,6 +46,6 @@ void removeClient(int userId);
 void sendMessage(char *message, int senderUserId);
 void splitSendMessage(char *message, clientT *sender);
 void *handleClient(void *arg);
-
+void handleRequest(void);
 
 #endif //CHAT_SERVER_H
