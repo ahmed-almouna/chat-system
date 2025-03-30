@@ -1,16 +1,3 @@
-/*
-*   FILE          : chat-client.c
-*   PROJECT       : Can We Talk System - A04
-*   PROGRAMMER    : Ahmed, Valentyn, Juan Jose, Warren
-*   FIRST VERSION : 03/23/2025
-*   DESCRIPTION   :
-*      This is the main client file for the "Can We Talk" system.
-*      It connects to the chat-server via TCP/IP, registers the user with their
-*      username and IP address, and provides a terminal-based UI using ncurses.
-*      The client sends and receives chat messages, formats and parses them, and
-*      handles special commands like >>bye<< and >>history<<.
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,7 +7,7 @@
 #include <ncurses.h>
 #include <netinet/in.h>
 
-#define PORT 13000
+#define PORT 8080
 #define BUFFER_SIZE 1024
 #define MAX_MESSAGE_LENGTH 80
 #define MAX_USERNAME_LENGTH 5
@@ -34,13 +21,10 @@ char client_ip[INET_ADDRSTRLEN];         // To store client's IP address
 char message_history[MAX_HISTORY][BUFFER_SIZE];   // Array to store history messages
 int message_count = 0;                            // Track the number of saved messages
 
-/*
- *  Function  : receive_messages()
- *  Summary   : Runs in a separate thread to receive messages from the server continuously.
- *              Saves them in history and prints them to the screen.
- *  Params    : void* arg
- *  Return    : void*
- */
+// Thread function to receive messages from the server
+// This runs in a separate thread, constantly listening for incoming messages from the server.
+// It saves messages to the history array and displays them on the screen in real-time.
+// If the connection is closed, it breaks out of the loop and stops receiving.
 void *receive_messages(void *arg) {
     char buffer[BUFFER_SIZE];
 
@@ -72,12 +56,9 @@ void *receive_messages(void *arg) {
     return NULL;
 }
 
-/*
- *  Function  : show_message_history()
- *  Summary   : Displays the last 50 received messages stored in message_history.
- *  Params    : void
- *  Return    : void
- */
+// Display message history
+// This function prints the stored message history on the screen.
+// It's triggered when the user types `>>history<<` in the chat.
 void show_message_history() {
     for (int i = 0; i < message_count; i++) {
         printw("%s\n", message_history[i]);
@@ -85,13 +66,9 @@ void show_message_history() {
     refresh();
 }
 
-/*
- *  Function  : init_ncurses()
- *  Summary   : Initializes the ncurses UI for text-based chat display.
- *              It enables line buffering, disables echoing, and supports scrolling.
- *  Params    : void
- *  Return    : void
- */
+// Initialize ncurses for terminal-based UI
+// Ncurses is used to create a cleaner, scrolling chat display.
+// It enables line buffering, disables echoing, and supports scrolling.
 void init_ncurses() {
     initscr();               // Start ncurses mode
     cbreak();                 // Disable line buffering
@@ -100,13 +77,9 @@ void init_ncurses() {
     keypad(stdscr, TRUE);     // Enable keypad input
 }
 
-/*
- *  Function  : cleanup()
- *  Summary   : Cleans up UI and closes socket before exiting.
- *              It ensures that the terminal UI resets when the program exits.
- *  Params    : void
- *  Return    : void
- */
+// Clean up resources before exiting
+// This function ends ncurses mode and closes the socket properly.
+// It ensures that the terminal UI resets when the program exits.
 void cleanup() {
     endwin();
     close(sockfd);
