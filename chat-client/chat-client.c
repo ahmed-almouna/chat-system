@@ -7,7 +7,7 @@
 #include <ncurses.h>
 #include <netinet/in.h>
 
-#define PORT 8080
+#define PORT 13000
 #define BUFFER_SIZE 1024
 #define MAX_MESSAGE_LENGTH 80
 #define MAX_USERNAME_LENGTH 5

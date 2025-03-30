@@ -31,7 +31,7 @@ int main(void)
     }
 
     /* Check if all clients have disconnected */
-    if (activeClients.numberOfClients <= 0)
+    if (activeClients.numberOfClients == 11)
     {
       break;
     }
@@ -101,7 +101,7 @@ void handleRequest(void* clientSocket)
   /* Read & parse client's message */
   char buffer[kMaxMsgLength] = {};
   char* messageParts[3];
-  int clientSocketInt = *((int*)clientSocket);
+  int clientSocketInt = ((int)clientSocket);
   read(clientSocketInt, buffer, sizeof(buffer));
   parseMessage(buffer, messageParts);
 
@@ -150,7 +150,7 @@ void addClient(int clientSocket, char* messageParts[])
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < kMaxClients; i++)
   {
-    if (&activeClients.clients[i] == NULL)
+    if (strcpy(activeClients.clients[i].userName, ""))
     {
       activeClients.clients[i].clientSocket = clientSocket;
       strcpy(activeClients.clients[i].userName, messageParts[1]);
