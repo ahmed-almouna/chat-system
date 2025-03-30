@@ -23,14 +23,7 @@
 #define kUserNameLength 6
 #define kGenericStringLength 100
 
-// typedef struct {
-//   struct sockaddr_in address;
-//   int sockfd;
-//   int userId;
-//   char userName[kUserNameLength];
-//   char ip[INET_ADDRSTRLEN];
-// } clientT;
-
+// Data structures
 typedef struct ClientInfo
 {
     int clientSocket;
@@ -45,9 +38,6 @@ typedef struct ClientsList
 } ClientsList;
 
 ClientsList activeClients;
-
-//clientT *clients[kMaxClients];
-//static int userId = 0;
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -59,9 +49,7 @@ void parseMessage(char* message, char* messageParts[]);
 void addClient(int clientSocket, char* messageParts[]);
 void removeClient(int userId);
 void broadcastMessage(char* message, int senderUserId);
-char* formatMessage(int clientSocket, char* message);
+void formatMessage(int clientSocket, char* message);
 void displayFatalError(char* errorMessage);
-
-//void splitSendMessage(char *message, clientT *sender);
 
 #endif //CHAT_SERVER_H
