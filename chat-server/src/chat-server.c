@@ -1,3 +1,16 @@
+/*
+*   FILE          : chat-server.c
+*   PROJECT       : Can We Talk System - A04
+*   PROGRAMMER    : Ahmed, Valentyn, Juan Jose, Warren
+*   FIRST VERSION : 03/23/2025
+*   DESCRIPTION   :
+*      This is the main server-side implementation for the "Can We Talk" system.
+*      The chat server uses TCP/IP sockets and pthreads to handle up to 10 clients.
+*      Each client is handled in a dedicated thread, and messages are broadcast
+*      to all connected users. Messages are split into chunks and include
+*      IP, username, and timestamp for proper formatting and display.
+*/
+
 #include "../inc/chat-server.h"
 
 int main(void)
@@ -45,6 +58,12 @@ int main(void)
   return 0;
 }
 
+/*
+ *  Function  : setUpConnection()
+ *  Summary   : This function sets up the server-side socket, binds to the port, and starts listening.
+ *  Params    : void
+ *  Return    : int
+ */
 int setUpConnection(void)
 {
   int serverSocket;
@@ -85,6 +104,12 @@ int setUpConnection(void)
   return serverSocket;
 }
 
+/*
+ *  Function  : spawnClientThread()
+ *  Summary   : This function creates a new thread to handle an incoming client connection.
+ *  Params    : int clientSocket
+ *  Return    : void
+ */
 void spawnClientThread(int clientSocket)
 {
   // Fire a thread to handle client request
@@ -96,7 +121,12 @@ void spawnClientThread(int clientSocket)
   pthread_detach(clientThread);
 }
 
-// This functions handles a request being received
+/*
+ *  Function  : handleRequest()
+ *  Summary   : This function is executed by each client-handling thread. Receives and parses messages.
+ *  Params    : void* clientSocket
+ *  Return    : void
+ */
 void handleRequest(void* clientSocket)
 {
   int clientSocketInt = ((int)clientSocket);
@@ -129,14 +159,25 @@ void handleRequest(void* clientSocket)
   }
 }
 
-// This function displays the error message specified and terminates the program.
+/*
+ *  Function  : displayFatalError()
+ *  Summary   : This function displays the error message specified and terminates the program.
+ *  Params    : char* errorMessage
+ *  Return    : void
+ */
 void displayFatalError(char* errorMessage)
 {
   perror(errorMessage);
   exit(EXIT_FAILURE);
 }
 
-// This function takes the message and divides it into parts on pipe (|) delimiter
+/*
+ *  Function  : parseMessage()
+ *  Summary   : This function takes the message and divides it into parts on pipe (|) delimiter
+ *  Params    : char* message
+ *              char* messageParts[]
+ *  Return    : void
+ */
 void parseMessage(char* message, char* messageParts[])
 {
   /* Divide string into parts */
@@ -150,6 +191,13 @@ void parseMessage(char* message, char* messageParts[])
   }
 }
 
+/*
+ *  Function  : addClient()
+ *  Summary   : This function adds a client to the global client list.
+ *  Params    : int clientSocket
+ *              char* messageParts[]
+ *  Return    : void
+ */
 void addClient(int clientSocket, char* messageParts[])
 {
   pthread_mutex_lock(&clients_mutex);
@@ -167,6 +215,12 @@ void addClient(int clientSocket, char* messageParts[])
   pthread_mutex_unlock(&clients_mutex);
 }
 
+/*
+ *  Function  : removeClient()
+ *  Summary   : This function removes a client from the global list and shifts remaining clients.
+ *  Params    : int clientSocket
+ *  Return    : void
+ */
 void removeClient(int clientSocket)
 {
   pthread_mutex_lock(&clients_mutex);
@@ -194,6 +248,14 @@ void removeClient(int clientSocket)
   }
   pthread_mutex_unlock(&clients_mutex);
 }
+
+/*
+ *  Function  : broadcastMessage()
+ *  Summary   : This function splits a message into 40-character chunks and sends to all clients.
+ *  Params    : char* message
+ *              int clientSocket
+ *  Return    : void
+ */
 
 void broadcastMessage(char* message, int clientSocket)
 {
@@ -226,6 +288,13 @@ void broadcastMessage(char* message, int clientSocket)
   pthread_mutex_unlock(&clients_mutex);
 }
 
+/*
+ *  Function  : formatMessage()
+ *  Summary   : This function formats a message with IP, username, and content. Updates the passed-in message.
+ *  Params    : int clientSocket
+ *              char* message
+ *  Return    : void
+ */
 void formatMessage(int clientSocket, char* message)
 {
   char formattedMessage[kMaxMsgLength] = "";

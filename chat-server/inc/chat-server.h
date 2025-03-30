@@ -1,6 +1,12 @@
-//
-// Created on 27/03/25.
-//
+/*
+*   FILE          :chat-server.h
+*   PROJECT       : Can We Talk System - A04
+*   PROGRAMMER    : Ahmed, Valentyn, Juan Jose, Warren
+*   FIRST VERSION : 03/23/2025
+*   DESCRIPTION   :
+*      This is the header file where we put all the function prototypes, libraries
+*      variable declaration, etc
+*/
 
 #ifndef CHAT_SERVER_H
 #define CHAT_SERVER_H
@@ -33,8 +39,8 @@ typedef struct ClientInfo
 
 typedef struct ClientsList
 {
-   int numberOfClients;
-   ClientInfo clients[kMaxClients];
+    int numberOfClients;
+    ClientInfo clients[kMaxClients];
 } ClientsList;
 
 ClientsList activeClients;
