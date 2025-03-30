@@ -20,6 +20,7 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdbool.h>
 
 // Constants
 #define kServerPort 13000

@@ -114,7 +114,7 @@ void spawnClientThread(int clientSocket)
 {
   // Fire a thread to handle client request
   pthread_t clientThread;
-  if (pthread_create(&clientThread, nullptr, handleRequest, (void*)clientSocket) != 0)
+  if (pthread_create(&clientThread, NULL, handleRequest, (void*)clientSocket) != 0)
   {
     displayFatalError("pthread_create() FAILED");
   }
@@ -186,7 +186,7 @@ void parseMessage(char* message, char* messageParts[])
   while (token != NULL )
   {
     messageParts[i] = token;
-    token = strtok(nullptr, "|");
+    token = strtok(NULL, "|");
     i++;
   }
 }
@@ -307,5 +307,5 @@ void formatMessage(int clientSocket, char* message)
       break;
     }
   }
-  message = formattedMessage;
+  strcpy(message, formattedMessage);
 }

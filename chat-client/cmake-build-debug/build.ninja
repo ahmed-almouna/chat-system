@@ -49,11 +49,11 @@ cmake_ninja_workdir = /home/aalmoune1948/Desktop/A4/chat-system/chat-client/cmak
 
 build cmake_object_order_depends_target_chat_client: phony || .
 
-build CMakeFiles/chat_client.dir/chat-client.c.o: C_COMPILER__chat_client_unscanned_Debug /home/aalmoune1948/Desktop/A4/chat-system/chat-client/chat-client.c || cmake_object_order_depends_target_chat_client
-  DEP_FILE = CMakeFiles/chat_client.dir/chat-client.c.o.d
+build CMakeFiles/chat_client.dir/src/chat-client.c.o: C_COMPILER__chat_client_unscanned_Debug /home/aalmoune1948/Desktop/A4/chat-system/chat-client/src/chat-client.c || cmake_object_order_depends_target_chat_client
+  DEP_FILE = CMakeFiles/chat_client.dir/src/chat-client.c.o.d
   FLAGS = -g -std=gnu2x -fdiagnostics-color=always
   OBJECT_DIR = CMakeFiles/chat_client.dir
-  OBJECT_FILE_DIR = CMakeFiles/chat_client.dir
+  OBJECT_FILE_DIR = CMakeFiles/chat_client.dir/src
 
 
 # =============================================================================
@@ -63,7 +63,7 @@ build CMakeFiles/chat_client.dir/chat-client.c.o: C_COMPILER__chat_client_unscan
 #############################################
 # Link the executable chat_client
 
-build chat_client: C_EXECUTABLE_LINKER__chat_client_Debug CMakeFiles/chat_client.dir/chat-client.c.o
+build chat_client: C_EXECUTABLE_LINKER__chat_client_Debug CMakeFiles/chat_client.dir/src/chat-client.c.o
   FLAGS = -g
   LINK_LIBRARIES = -lncurses
   OBJECT_DIR = CMakeFiles/chat_client.dir
