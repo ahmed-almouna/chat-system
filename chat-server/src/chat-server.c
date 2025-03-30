@@ -1,8 +1,50 @@
 #include "../inc/chat-server.h"
 
-#include <threads.h>
-
 int main(void)
+{
+  // Set up tcp connection
+  int serverSocket = setUpConnection();
+
+  // Initialize variables to store clients' details
+  int clientSocket;
+  struct sockaddr_in clientAddress;
+  socklen_t clientAddressLength = sizeof(clientAddress);
+  activeClients.numberOfClients = 0;
+
+  sleep(1); //Change to 10
+
+  /* Enter main listening loop; i.e. accept users' messages */ //NOTE try killing a client while running
+  while (true)
+  {
+    // Accept a connection
+    if ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &clientAddressLength)) >= 0)
+    {
+      // Spawn a thread to handle it
+      spawnClientThread(clientSocket);
+
+    } // Handle fatal errors
+    else if (clientSocket < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+    {
+      close(serverSocket);
+      close(clientSocket);
+      displayFatalError("accept() FAILED");
+    }
+
+    /* Check if all clients have disconnected */
+    if (activeClients.numberOfClients <= 0)
+    {
+      break;
+    }
+
+    // Simulate some non-blocking work (e.g., checking timers, other tasks)
+    sleep(1); // Sleep briefly to avoid busy-waiting
+  }
+
+  close(serverSocket);
+  return 0;
+}
+
+int setUpConnection(void)
 {
   int serverSocket;
 
@@ -39,70 +81,42 @@ int main(void)
     displayFatalError("listen() FAILED");
   }
 
-  int clientSocket;
-  struct sockaddr_in clientAddress; // Holds client's details
-  socklen_t clientAddressLength = sizeof(clientAddress);
-
-  sleep(1); //Change to 10
-  ClientList chatClients;
-  chatClients.numberOfClients = 0;
-  chatClients.clients = {};
-
-  /* Enter listening loop; accept users' messages */ //NOTE try killing a client while running
-  while (true)
-  {
-    /* Accept a connection */
-    if ((clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddress, &clientAddressLength)) >= 0)
-    {
-      /* Fire a thread to handle it */
-      thrd_t clientThread;
-      if (thrd_create(clientThread, handleClient, (void*)clientSocket) != thrd_success)
-      {
-        displayFatalError("thrd_create() FAILED");
-      }
-
-      thrd_detach(clientThread);
-
-    } /* Handle fatal errors */
-    else if (clientSocket < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
-    {
-      // might need to clean up
-      displayFatalError("accept() FAILED");
-    }
-
-    if (chatClients.numberOfClients == 0)
-    {
-      break;
-    }
-    // Simulate some non-blocking work (e.g., checking timers, other tasks)
-    sleep(1); // Sleep briefly to avoid busy-waiting
-  }
-
-  //todo: Clean up
-
-  return 0;
+  return serverSocket;
 }
 
-// This functions handles a request being receieved
+void spawnClientThread(int clientSocket)
+{
+  // Fire a thread to handle client request
+  pthread_t clientThread;
+  if (pthread_create(&clientThread, nullptr, handleRequest, (void*)clientSocket) != 0)
+  {
+    displayFatalError("pthread_create() FAILED");
+  }
+  pthread_detach(clientThread);
+}
+
+// This functions handles a request being received
 void handleRequest(void* clientSocket)
 {
-  char buffer[kBufferSize] = {};
+  /* Read & parse client's message */
+  char buffer[kMaxMsgLength] = {};
+  char* messageParts[3];
+  int clientSocketInt = *((int*)clientSocket);
+  read(clientSocketInt, buffer, sizeof(buffer));
+  parseMessage(buffer, messageParts);
 
-  read((int)clientSocket, buffer, sizeof(buffer));
-
-  strcmp(buffer, "");
-
-  if (strncmp(buffer, "Hello|", 6) == 0)
+  /* Perform appropriate operation based on message */
+  if (strcmp(messageParts[0], "Hello") == 0)
   {
-    //add client
+    addClient(clientSocketInt, messageParts);
   }
-  else if (strcmp(buffer, ">>bye<<") == 0)
+  else if (strcmp(messageParts[0], ">>bye<<") == 0)
   {
-    //remove client
+    removeClient(clientSocketInt);
   }
-  else if (strncmp(buffer, "Message|", 6) == 0)
+  else if (strcmp(messageParts[0], "Message") == 0)
   {
-    //parcel, format, and broadcast message
+    broadcastMessage(messageParts[1], clientSocketInt);
   }
   else
   {
@@ -111,62 +125,130 @@ void handleRequest(void* clientSocket)
 }
 
 // This function displays the error message specified and terminates the program.
-void displayFatalError(char* errorMessage) //might need to go in common
+void displayFatalError(char* errorMessage)
 {
   perror(errorMessage);
   exit(EXIT_FAILURE);
 }
 
-void addClient(clientT *client) {
+// This function takes the message and divides it into parts on pipe (|) delimiter
+void parseMessage(char* message, char* messageParts[])
+{
+  /* Divide string into parts */
+  char* token = strtok(message, "|");
+  int i = 0;
+  while (token != NULL )
+  {
+    messageParts[i] = token;
+    token = strtok(nullptr, "|");
+    i++;
+  }
+}
+
+void addClient(int clientSocket, char* messageParts[])
+{
   pthread_mutex_lock(&clients_mutex);
-  for (int i = 0; i < kMaxClients; i++) {
-    if (clients[i] == NULL) {
-      clients[i] = client;
+  for (int i = 0; i < kMaxClients; i++)
+  {
+    if (&activeClients.clients[i] == NULL)
+    {
+      activeClients.clients[i].clientSocket = clientSocket;
+      strcpy(activeClients.clients[i].userName, messageParts[1]);
+      strcpy(activeClients.clients[i].ipAddress, messageParts[2]);
+      activeClients.numberOfClients++;
       break;
     }
   }
   pthread_mutex_unlock(&clients_mutex);
 }
 
-void removeClient(int userId) {
+void removeClient(int clientSocket)
+{
   pthread_mutex_lock(&clients_mutex);
-  for (int i = 0; i < kMaxClients; i++) {
-    if (clients[i] != NULL && clients[i]->userId == userId) {
-      clients[i] = NULL;
+  for (int i = 0; i < activeClients.numberOfClients; i++)
+  {
+    if (activeClients.clients[i].clientSocket == clientSocket)
+    {
+      /* Update clients list */
+      for(int j = i; j < activeClients.numberOfClients - 1; j++)
+      {
+        activeClients.clients[j] = activeClients.clients[j + 1];
+      }
+
+      /* Handle special case (client is last in array) */
+      if (i == activeClients.numberOfClients - 1)
+      {
+        ClientInfo emptyClient = {};
+        activeClients.clients[i] = emptyClient;
+      }
+
+      activeClients.numberOfClients--;
       break;
     }
   }
   pthread_mutex_unlock(&clients_mutex);
 }
 
-void sendMessage(char *message, int senderUserId) {
+void broadcastMessage(char* message, int clientSocket)
+{
+  /* Parcel & format the message */
   pthread_mutex_lock(&clients_mutex);
-  for (int i = 0; i < kMaxClients; i++) {
-    if (clients[i] != NULL && clients[i]->userId == senderUserId) {
-      if(write(clients[i]->sockfd, message, strlen(message)) < 0) {
+  char messageChunks[2][kMaxMsgLength] = {""};
+  strncpy(messageChunks[0], message, kChunkSize - 1);
+  strcpy(messageChunks[0], formatMessage(clientSocket, messageChunks[0]));
+  if (strlen(message) > kChunkSize)
+  {
+    strncpy(messageChunks[1], message + 40, kChunkSize - 1);
+    strcpy(messageChunks[1], formatMessage(clientSocket, messageChunks[1]));
+  }
+
+  /* Broadcast the message to all clients */
+  for (int i = 0; i < activeClients.numberOfClients; i++)
+  {
+    if (write(activeClients.clients[i].clientSocket, messageChunks[0], strlen(messageChunks[0])) < 0)
+    {
+      perror("Write error");
+    }
+    if (messageChunks[1] != NULL)
+    {
+      if (write(activeClients.clients[i].clientSocket, messageChunks[1], strlen(messageChunks[1])) < 0)
+      {
         perror("Write error");
-        break;
       }
     }
   }
   pthread_mutex_unlock(&clients_mutex);
 }
 
-void splitSendMessage(char *message, clientT *sender) {
-  int len = strlen(message);
-  int numChunks = len / kChunkSize + (len % kChunkSize ? 1 : 0);
-  char chunk[kChunkSize];
-  time_t now;
-  struct tm *timeinfo;
-
-  for (int i = 0; i < numChunks; i++) {
-    strncpy(chunk, message + (i * kChunkSize), kChunkSize);
-    chunk[kChunkSize - 1] = '\0';
-
-    time(&now);
-    timeinfo = localtime(&now);
-
-    char formattedMsg[kBufferSize];
-
+char* formatMessage(int clientSocket, char* message)
+{
+  char* formattedMessage = nullptr;
+  for (int i = 0; i < activeClients.numberOfClients; i++)
+  {
+    if (activeClients.clients[i].clientSocket == clientSocket)
+    {
+      sprintf(formattedMessage, "%s [%.5s] << %.40s ", activeClients.clients[i].ipAddress, activeClients.clients[i].userName,
+              message);
+    }
   }
+  return formattedMessage;
 }
+
+// void splitSendMessage(char *message, clientT *sender) {
+//   int len = strlen(message);
+//   int numChunks = len / kChunkSize + (len % kChunkSize ? 1 : 0);
+//   char chunk[kChunkSize];
+//   time_t now;
+//   struct tm *timeinfo;
+//
+//   for (int i = 0; i < numChunks; i++) {
+//     strncpy(chunk, message + (i * kChunkSize), kChunkSize);
+//     chunk[kChunkSize - 1] = '\0';
+//
+//     time(&now);
+//     timeinfo = localtime(&now);
+//
+//     char formattedMsg[kBufferSize];
+//
+//   }
+// }

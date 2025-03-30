@@ -11,7 +11,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <threads.h>
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -19,10 +18,10 @@
 // Constants
 #define kServerPort 13000
 #define kMaxClients 10
-#define kBufferSize 1024
-#define kMaxMsgLength 80
+#define kMaxMsgLength 90
 #define kChunkSize 41
-#define kUserNameLength 6
+#define kUserNameLength 5
+#define kGenericStringLength 100
 
 typedef struct {
   struct sockaddr_in address;
@@ -32,23 +31,36 @@ typedef struct {
   char ip[INET_ADDRSTRLEN];
 } clientT;
 
-typedef struct ClientList
+typedef struct ClientInfo
+{
+    int clientSocket;
+    char ipAddress[kGenericStringLength];
+    char userName[INET_ADDRSTRLEN];
+} ClientInfo;
+
+typedef struct ClientsList
 {
    int numberOfClients;
-   clientT clients[kMaxClients];
-} ClientList;
+   ClientInfo clients[kMaxClients];
+} ClientsList;
+
+ClientsList activeClients;
 
 clientT *clients[kMaxClients];
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int userId = 0;
 
 //Function prototypes
-void displayFatalError(char* errorMessage);
-void addClient(clientT *client);
+int setUpConnection(void);
+void spawnClientThread(int clientSocket);
+void handleRequest(void* arg);
+void parseMessage(char* message, char* messageParts[]);
+void addClient(int clientSocket, char* messageParts[]);
 void removeClient(int userId);
-void sendMessage(char *message, int senderUserId);
+void broadcastMessage(char* message, int senderUserId);
+char* formatMessage(int clientSocket, char* message);
+void displayFatalError(char* errorMessage);
+
 void splitSendMessage(char *message, clientT *sender);
-void *handleClient(void *arg);
-void handleRequest(void);
 
 #endif //CHAT_SERVER_H
