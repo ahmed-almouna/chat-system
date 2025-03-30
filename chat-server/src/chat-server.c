@@ -267,7 +267,7 @@ void broadcastMessage(char* message, int clientSocket)
   if (strlen(message) > kChunkSize)
   {
     strncpy(messageChunks[1], message + 40, kChunkSize - 1);
-    //strcpy(messageChunks[1], formatMessage(clientSocket, messageChunks[1]));
+    formatMessage(clientSocket, messageChunks[1]);
   }
 
   /* Broadcast the message to all clients */
