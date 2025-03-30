@@ -11,7 +11,7 @@ int main(void)
   socklen_t clientAddressLength = sizeof(clientAddress);
   activeClients.numberOfClients = 0;
 
-  sleep(10); //Change to 10
+  int attempts = 0;
 
   /* Enter main listening loop; i.e. accept users' messages */ //NOTE try killing a client while running
   while (true)
@@ -21,6 +21,7 @@ int main(void)
     {
       // Spawn a thread to handle it
       spawnClientThread(clientSocket);
+      attempts++;
 
     } // Handle fatal errors
     else if (clientSocket < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
@@ -30,8 +31,9 @@ int main(void)
     }
 
     /* Check if all clients have disconnected */
-    if (activeClients.numberOfClients == 0)
+    if (activeClients.numberOfClients == 2232)
     {
+      printf("Server shutting");
       break;
     }
 
@@ -153,7 +155,7 @@ void addClient(int clientSocket, char* messageParts[])
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < kMaxClients; i++)
   {
-    if (strcpy(activeClients.clients[i].userName, ""))
+    if (strcmp(activeClients.clients[i].userName, "") == 0)
     {
       activeClients.clients[i].clientSocket = clientSocket;
       strcpy(activeClients.clients[i].userName, messageParts[1]);
