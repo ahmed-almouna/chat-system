@@ -23,7 +23,6 @@ int main(void)
   struct sockaddr_in clientAddress;
   socklen_t clientAddressLength = sizeof(clientAddress);
   activeClients.numberOfClients = 0;
-
   int attempts = 0;
 
   /* Enter main listening loop; i.e. accept users' messages */ //NOTE try killing a client while running
@@ -34,7 +33,6 @@ int main(void)
     {
       // Spawn a thread to handle it
       spawnClientThread(clientSocket);
-      attempts++;
 
     } // Handle fatal errors
     else if (clientSocket < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
@@ -43,8 +41,9 @@ int main(void)
       displayFatalError("accept() FAILED");
     }
 
+    attempts++;
     /* Check if all clients have disconnected */
-    if (activeClients.numberOfClients == 2232)
+    if (activeClients.numberOfClients <= 0 && attempts >= 15)
     {
       printf("Server shutting");
       break;
@@ -139,6 +138,11 @@ void handleRequest(void* clientSocket)
     parseMessage(buffer, messageParts);
 
     /* Perform appropriate operation based on message */
+    if (messageParts[0] == NULL)
+    {
+      removeClient(clientSocketInt);
+      break;
+    }
     if (strcmp(messageParts[0], "Hello") == 0)
     {
       addClient(clientSocketInt, messageParts);
@@ -150,11 +154,10 @@ void handleRequest(void* clientSocket)
     }
     else if (strcmp(messageParts[0], "Message") == 0)
     {
-      broadcastMessage(messageParts[1], clientSocketInt);
-    }
-    else
-    {
-      //message is invalid
+      if (messageParts[1] != NULL)
+      {
+        broadcastMessage(messageParts[1], clientSocketInt);
+      }
     }
   }
 }
@@ -279,6 +282,7 @@ void broadcastMessage(char* message, int clientSocket)
     }
     if (strlen(messageChunks[1]) > 0)
     {
+      sleep(1);
       if (write(activeClients.clients[i].clientSocket, messageChunks[1], strlen(messageChunks[1])) < 0)
       {
         perror("Write error");

@@ -1,3 +1,9 @@
 # ninja log v6
 2	190	1743318140046667052	CMakeFiles/chat_client.dir/chat-client.c.o	1cd75151e63806ba
 190	293	1743318140235640869	chat_client	736006944ad5205c
+19	1010	1743373055006845815	CMakeFiles/chat_client.dir/src/chat-client.c.o	c3f6ec487b657960
+1011	1144	1743373055998752853	chat_client	cdde5ad25ab96ed2
+2	383	1743379260101416910	CMakeFiles/chat_client.dir/src/chat-client.c.o	c3f6ec487b657960
+387	476	1743379260486361756	chat_client	cdde5ad25ab96ed2
+5	314	1743380944053947149	CMakeFiles/chat_client.dir/src/chat-client.c.o	c3f6ec487b657960
+315	360	1743380944364902950	chat_client	cdde5ad25ab96ed2
